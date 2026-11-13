@@ -122,7 +122,8 @@ def run_carlo(dev, runs, main, tol, rfun):
 
 # TEST 1: Determining convergence for MC Method
 dev_T1=np.array([0.25, 0.5, 0.75])
-run = 10000
+run = 1000000
+lspace=np.array([int(n) for n in np.logspace(1, np.log10(run), 50)])
 
 # Run MC method for three deviations and three different RNG functions
 fr, rd, cd, gd = run_carlo(dev_T1, np.array([run]), dev_mat, tol_arr, lambda f, **kwargs: np.random.uniform(-f, f, **kwargs))
@@ -133,10 +134,11 @@ fr_binary, rd_binary, cd_binary, gd_binary = run_carlo(dev_T1, np.array([run]), 
 # In[62]:
 
 
-# For each run of the nine MC method results, calculate the passing fraction for it and all trials prior (this takes some time)
-sumarr=np.array([[sum(gd[run][m][0:n])/n for n in range(1, run)] for m in dev_T1])
-sumarr_gauss=np.array([[sum(gd_gauss[run][m][0:n])/n for n in range(1, run)] for m in dev_T1])
-sumarr_binary=np.array([[sum(gd_binary[run][m][0:n])/n for n in range(1, run)] for m in dev_T1])
+# For a select set of logarithmically-spaced runs of the nine MC method results, 
+#calculate the passing fraction for it and all trials prior
+sumarr=np.array([[sum(gd[run][m][0:n])/n for n in lspace] for m in dev_T1])
+sumarr_gauss=np.array([[sum(gd_gauss[run][m][0:n])/n for n in lspace] for m in dev_T1])
+sumarr_binary=np.array([[sum(gd_binary[run][m][0:n])/n for n in lspace] for m in dev_T1])
 
 
 # In[63]:
@@ -154,21 +156,21 @@ for r in [0, 1, 2]:
     ind=[np.intersect1d(np.where(sumarr[r]>0), np.where(sumarr[r]<1)), 
         np.intersect1d(np.where(sumarr_gauss[r]>0), np.where(sumarr_gauss[r]<1)),
         np.intersect1d(np.where(sumarr_binary[r]>0), np.where(sumarr_binary[r]<1))]
-    ax[0].plot(np.arange(1, run)[ind[0]], 1-sumarr[r][ind[0]], color = f'tab:{c_arr[r]}', label = '$\delta_{max} = \pm$'+f'{.1+.05*r:.2f}')
-    ax[1].plot(np.arange(1, run)[ind[1]], 1-sumarr_gauss[r][ind[1]], color = f'tab:{c_arr[r]}', label = '$\sigma$ = '+f'{.1+.05*r:.2f}')
-    ax[2].plot(np.arange(1, run)[ind[2]], 1-sumarr_binary[r][ind[2]], color = f'tab:{c_arr[r]}', label = '$\delta = \pm$'+f'{.1+.05*r:.2f}')
+    ax[0].plot(lspace[ind[0]], 1-sumarr[r][ind[0]], color = f'tab:{c_arr[r]}', label = '$\delta_{max} = \pm$'+f'{.1+.05*r:.2f}')
+    ax[1].plot(lspace[ind[1]], 1-sumarr_gauss[r][ind[1]], color = f'tab:{c_arr[r]}', label = '$\sigma$ = '+f'{.1+.05*r:.2f}')
+    ax[2].plot(lspace[ind[2]], 1-sumarr_binary[r][ind[2]], color = f'tab:{c_arr[r]}', label = '$\delta = \pm$'+f'{.1+.05*r:.2f}')
     
     # Transluscent (otherwise)
-    ax[0].plot(np.arange(1, run), 1-sumarr[r], color = f'tab:{c_arr[r]}', label = '__', alpha = 0.25, zorder = -1)
-    ax[1].plot(np.arange(1, run), 1-sumarr_gauss[r], color = f'tab:{c_arr[r]}', label = '__', alpha = 0.25, zorder = -1)
-    ax[2].plot(np.arange(1, run), 1-sumarr_binary[r], color = f'tab:{c_arr[r]}', label = '__', alpha = 0.25, zorder = -1)
+    ax[0].plot(lspace, 1-sumarr[r], color = f'tab:{c_arr[r]}', label = '__', alpha = 0.25, zorder = -1)
+    ax[1].plot(lspace, 1-sumarr_gauss[r], color = f'tab:{c_arr[r]}', label = '__', alpha = 0.25, zorder = -1)
+    ax[2].plot(lspace, 1-sumarr_binary[r], color = f'tab:{c_arr[r]}', label = '__', alpha = 0.25, zorder = -1)
 
 # Visual formatting
 for a in ax:
     a.set_xscale('log')
-    a.set_xlim((1, run))
-    a.set_ylim((-.05, 1.05))
-    a.legend(loc = 'upper right')
+    a.set_xlim((10, run))
+    a.set_ylim((-.05, 1.3))
+    a.legend(loc = 'upper left')
 
 ax[0].set_title('Uniform')
 ax[1].set_title('Gaussian')
